@@ -26,7 +26,8 @@ namespace WindowsFormsApplication1
                 if (max_size > 10 || max_size < 0) return;
                 string line = string.Empty;
                 string text = string.Empty;
-                bool blocked = false;
+                //bool blocked = false;
+                int blockMode = 0;//0 - none, 1 - (), 2 - "", 3 - ""
 
                 Stopwatch watching = new Stopwatch();
 
@@ -39,8 +40,15 @@ namespace WindowsFormsApplication1
                     for (j = 0; j != line.Length; j++)
                     {
                         char symbol = line[j];
-                        if (symbol == '"' || symbol == '\'') blocked = !blocked;
-                        if (!blocked)
+
+                        if (symbol == '(' && blockMode == 0) blockMode = 1;
+                        else if (symbol == ')' && blockMode == 1) blockMode = 0;
+                        else if (symbol == '"' && blockMode == 0) blockMode = 2;
+                        else if (symbol == '"' && blockMode == 2) blockMode = 0;
+                        else if (symbol == '\'' && blockMode == 0) blockMode = 3;
+                        else if (symbol == '\'' && blockMode == 3) blockMode = 0;
+
+                        if (blockMode == 0)
                         {
                             if (symbol == '{' || symbol == '}')
                             {
@@ -72,7 +80,7 @@ namespace WindowsFormsApplication1
                 #region последняя обработка
                 line = string.Empty;
                 text = string.Empty;
-                blocked = false;
+                blockMode = 0;
                 int level = 0;
                 bool tabulated = false;
 
@@ -83,11 +91,18 @@ namespace WindowsFormsApplication1
 
                     for (j = 0; j != line.Length; j++)
                     {
-                        if (line[j] == '"' || line[j] == '\'') blocked = !blocked;
-                        if (blocked) continue;
+                        char symbol = line[j];
+                        if (symbol == '(' && blockMode == 0) blockMode = 1;
+                        else if (symbol == ')' && blockMode == 1) blockMode = 0;
+                        else if (symbol == '"' && blockMode == 0) blockMode = 2;
+                        else if (symbol == '"' && blockMode == 2) blockMode = 0;
+                        else if (symbol == '\'' && blockMode == 0) blockMode = 3;
+                        else if (symbol == '\'' && blockMode == 3) blockMode = 0;
+
+                        if (blockMode != 0) continue;
                         if ((!tabulated) && level > 0)
                         {
-                            if (line[j] == '}') level = level - 1;
+                            if (symbol == '}') level = level - 1;
                             line = "".PadLeft(level * max_size) + line;
                             tabulated = true;
                         }
